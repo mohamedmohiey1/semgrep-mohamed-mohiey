@@ -1,0 +1,32 @@
+rules:
+  - id: custom-php-shell-exec-injection
+    severity: ERROR
+    message: |
+      تم استخدام متغير غير مُنقى (tainted variable) مباشرةً داخل دالة shell_exec(). 
+      هذا يؤدي إلى حقن أوامر محتمل (Command Injection). يجب استخدام escapeshellarg() قبل التنفيذ.
+    languages:
+      - php
+    metadata:
+      cwe: CWE-77  # الحقن عبر وسيط تنفيذ أمر النظام
+      source-code: 'mutillidae/src/dns-lookup.php'
+      category: security
+    pattern-either:
+      - pattern: shell_exec("$X" . $Y)
+      - pattern: shell_exec($X . $Y)
+
+  - id: custom-php-sql-injection
+    severity: ERROR
+    message: |
+      تم استخدام متغير مباشرةً لبناء استعلام SQL. هذا يشكل خطر حقن SQL. يجب استخدام العبارات المُعدَّة (Prepared Statements).
+    languages:
+      - php
+    metadata:
+      cwe: CWE-89  # حقن SQL
+      source-code: 'mutillidae/src/edit-account-profile.php'
+      category: security
+    pattern-either:
+      # يبحث عن دوال الاستعلام الشائعة حيث الوسيط هو سلسلة نصية ملحقة بمتغير ( $VAR)
+      - pattern: mysqli_query($CONNECTION, "$QUERY" . $VAR)
+      - pattern: mysqli_query($CONNECTION, $VAR)
+      - pattern: mysql_query("$QUERY" . $VAR)
+      - pattern: mysql_query($VAR)
